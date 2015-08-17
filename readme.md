@@ -5,11 +5,17 @@
 ## Usage
 ![screenshot](images/screenshot.png)
 
-1. Select `New -> Android Selector` with your `res` directory.
-1. Set filename, color, pressed and pressed-v21.
+- Set your colors.
+```xml
+    <color name="colorPrimary">#519FE5</color>
+    <color name="colorPrimaryDark">#388AC6</color>
+    <color name="colorAccent">#FFFFFF</color>
+```
+- Select `New -> Android Selector` with your `res` directory.
+- Set filename, color, pressed and pressed-v21.
     - ripple drawable is generated in drawable-v21 directory.
     - normal drawable is generated in drawable directory.
-1. Use the drawable.
+- Use the drawable.
 ```xml
     <android.support.v7.widget.AppCompatButton
         android:layout_width="wrap_content"
@@ -23,7 +29,7 @@
 
 ## Demo
 
-| Lollipop &lt; | Lollipop &gt;= | 
+| Lollipop &gt; | Lollipop &lt;= | 
 |---------------|----------------|
 | ![demo1][d1]  | ![demo2][d2]   |
 
