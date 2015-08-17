@@ -1,6 +1,8 @@
 # android-selector-intellij-plugin
 :art: Generate background drawable for selector.
 
+![screenshot](images/screenshot.png)
+
 Select `New -> AndroidSelector` with your `res` directory.
 
 - ripple drawable is generated in drawable-v21 directory.
