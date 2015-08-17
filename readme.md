@@ -1,5 +1,5 @@
 # android-selector-intellij-plugin
-:art: Generate background drawable for selector.
+:art: Generate selectors for background drawable.
 
 
 ## Usage
