@@ -1,20 +1,23 @@
 <idea-plugin version="2">
     <id>importre.intellij.android.selector</id>
     <name>Android Selector</name>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <vendor email="jaeweheo@gmail.com" url="http://import.re">
         importre
     </vendor>
 
     <description><![CDATA[
-      <h1>Generate background drawable for selector</h1>
+      <h1>Generate selectors for background drawable</h1>
+      <br/>
 
-      Select `New -> AndroidSelector` with your `res` directory.<br><br>
+      Select `New -> AndroidSelector` with your `res` directory.
+      <br/><br/>
 
-      - ripple drawable is generated in drawable-v21 directory.<br>
-      - normal drawable is generated in drawable directory.<br>
+      - ripple drawable is generated in drawable-v21 directory.<br/>
+      - normal drawable is generated in drawable directory.<br/>
 
       <h2>Dependency</h2>
+      <br/>
       - com.android.support:appcompat-v7:22.+
     ]]></description>
 
@@ -48,6 +51,7 @@
         <action id="importre.intellij.android.selector.AndroidSelector"
                 class="importre.intellij.android.selector.action.AndroidSelector"
                 text="Android Selector"
+                icon="/icons/santa.png"
                 description="Generate android selector xml files">
             <add-to-group group-id="NewGroup" anchor="after"
                           relative-to-action="NewAndroidAssetImage"/>
