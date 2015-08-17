@@ -9,6 +9,13 @@ Select `New -> Android Selector` with your `res` directory.
 - normal drawable is generated in drawable directory.
 
 
+## Demo
+
+| Lollipop &lt; | Lollipop &gt;= | 
+|---------------|----------------|
+| ![demo1][d1]  | ![demo2][d2]   |
+
+
 ## Dependency
 - com.android.support:appcompat-v7:22.+
 
@@ -28,3 +35,5 @@ MIT © [Jaewe Heo][importre]
 
 
 [importre]: http://import.re
+[d1]: images/demo1.png
+[d2]: images/demo2.png
