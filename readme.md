@@ -10,9 +10,9 @@
     <color name="colorAccent">#FFFFFF</color>
 ```
 - Select `New -> Android Selector` with your `res` directory.
-    - ![screenshot1](images/screenshot1.png)
+    ![screenshot1](images/screenshot1.png)
 - Set filename, color, pressed and pressed-v21.
-    - ![screenshot2](images/screenshot2.png)
+    ![screenshot2](images/screenshot2.png)
     - ripple drawable is generated in drawable-v21 directory.
     - normal drawable is generated in drawable directory.
 - Use the drawable.
