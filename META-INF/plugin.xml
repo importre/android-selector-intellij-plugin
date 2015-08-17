@@ -1,7 +1,7 @@
 <idea-plugin version="2">
     <id>importre.intellij.android.selector</id>
     <name>Android Selector</name>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <vendor email="jaeweheo@gmail.com" url="http://import.re">
         importre
     </vendor>
@@ -28,9 +28,8 @@
 
     <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
          on how to target different products -->
-    <!-- uncomment to enable plugin in all products
+
     <depends>com.intellij.modules.lang</depends>
-    -->
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
