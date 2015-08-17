@@ -1,5 +1,5 @@
 # android-selector-intellij-plugin
-Generate background drawable for selector.
+:art: Generate background drawable for selector.
 
 Select `New -> AndroidSelector` with your `res` directory.
 
