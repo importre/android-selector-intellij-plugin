@@ -12,7 +12,7 @@
     <color name="colorAccent">#FFFFFF</color>
 ```
 
-- Select `New -> Android Selector` with your `res` directory.
+- Select `New -> Android Selector` with your `res` directory.  
 ![screenshot1](images/screenshot1.png)
 
 - Set filename, color, pressed and pressed-v21.
