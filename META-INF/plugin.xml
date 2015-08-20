@@ -1,7 +1,7 @@
 <idea-plugin version="2">
     <id>importre.intellij.android.selector</id>
     <name>Android Selector</name>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
     <vendor email="jaeweheo@gmail.com" url="http://import.re">
         importre
     </vendor>
@@ -14,7 +14,7 @@
       <br/><br/>
 
       - ripple drawable is generated in drawable-v21 directory.<br/>
-      - normal drawable is generated in drawable directory.<br/>
+      - normal drawable is generated in drawable directory.<br/><br/>
 
       <h2>Dependency</h2>
       <br/>
@@ -22,7 +22,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-      Initial release.
+      Fix PluginException on Android Studio 1.4
     ]]>
     </change-notes>
 
