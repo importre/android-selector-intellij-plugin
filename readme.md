@@ -5,7 +5,7 @@
 
 
 ## Usage
-- Set your colors.
+- Set your colors(`res/values/colors.xml`).
 ```xml
     <color name="colorPrimary">#519FE5</color>
     <color name="colorPrimaryDark">#388AC6</color>
@@ -13,9 +13,11 @@
 ```
 
 - Select `New -> Android Selector` with your `res` directory.  
+
 ![screenshot1](images/screenshot1.png)
 
-- Set filename, color, pressed and pressed-v21.
+- Select filename, color, pressed and pressed-v21 respectively.
+
 ![screenshot2](images/screenshot2.png)
 
 > ripple drawable is generated in drawable-v21 directory.  
