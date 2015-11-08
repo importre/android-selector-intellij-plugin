@@ -32,7 +32,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
 
     private final String drawableDir = "drawable";
     private final String drawableV21Dir = "drawable-v21";
-    private final String colors = "values/colors.xml";
+    private final String valuesColorsXml = "values/colors.xml";
     private final VirtualFile dir;
     private final Project project;
 
@@ -76,7 +76,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
     }
 
     private boolean initColors(VirtualFile dir) throws Exception {
-        VirtualFile colorsXml = dir.findFileByRelativePath(colors);
+        VirtualFile colorsXml = dir.findFileByRelativePath(valuesColorsXml);
         if (colorsXml != null && colorsXml.exists()) {
             String data = readStream(colorsXml);
             data = data.replaceAll("(?s)<!--.+?-->", "");
@@ -121,7 +121,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
         }
 
         String title = "Error";
-        String msg = String.format("Cannot find %s", colors);
+        String msg = String.format("Cannot find %s", valuesColorsXml);
         showMessageDialog(title, msg);
         return false;
     }
