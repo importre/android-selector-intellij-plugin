@@ -1,18 +1,19 @@
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-android--selector--intellij--plugin-green.svg?style=flat)](https://android-arsenal.com/details/1/2342)
 
-# android-selector-intellij-plugin
+
+# android-selector-intellij-plugin ![icon](src/icons/icon@2x.png)
 :art: Generate selectors for background drawable.
 
 
 ## Usage
 - Set your colors(in `res/values/colors.xml`).
 ```xml
-    <color name="colorPrimary">#519FE5</color>
-    <color name="colorPrimaryDark">#388AC6</color>
-    <color name="colorAccent">#FFFFFF</color>
+<color name="colorPrimary">#519FE5</color>
+<color name="colorPrimaryDark">#388AC6</color>
+<color name="colorAccent">#FFFFFF</color>
 ```
 
-- Select `New -> Android Selector` with your `res` directory.  
+- Select `New -> Android Selector(or Ctrl/Cmd + N)` on your `res` directory.  
 
 ![screenshot1](images/screenshot1.png)
 
@@ -38,7 +39,7 @@
 
 ## Demo
 
-| Lollipop &gt; | Lollipop &lt;= | 
+| Lollipop &gt; | Lollipop &lt;= |
 |---------------|----------------|
 | ![demo1][d1]  | ![demo2][d2]   |
 

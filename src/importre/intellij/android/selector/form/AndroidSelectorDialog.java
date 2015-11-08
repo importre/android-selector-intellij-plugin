@@ -30,9 +30,10 @@ import java.util.regex.Pattern;
 
 public class AndroidSelectorDialog extends DialogWrapper {
 
-    private final String drawableDir = "drawable";
-    private final String drawableV21Dir = "drawable-v21";
-    private final String valuesColorsXml = "values/colors.xml";
+    private static final String drawableDir = "drawable";
+    private static final String drawableV21Dir = "drawable-v21";
+    private static final String valuesColorsXml = "values/colors.xml";
+
     private final VirtualFile dir;
     private final Project project;
 
