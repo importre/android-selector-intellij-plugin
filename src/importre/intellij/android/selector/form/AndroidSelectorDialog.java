@@ -49,11 +49,17 @@ public class AndroidSelectorDialog extends DialogWrapper {
         this.dir = dir;
         setTitle("Android Selector");
         setResizable(false);
+        init();
+    }
+
+    @Override
+    public void show() {
         try {
-            initColors(dir);
+            if (initColors(dir)) {
+                super.show();
+            }
         } catch (Exception ignored) {
         }
-        init();
     }
 
     @NotNull
@@ -69,10 +75,11 @@ public class AndroidSelectorDialog extends DialogWrapper {
         return buff.toString();
     }
 
-    private void initColors(VirtualFile dir) throws Exception {
+    private boolean initColors(VirtualFile dir) throws Exception {
         VirtualFile colorsXml = dir.findFileByRelativePath(colors);
         if (colorsXml != null && colorsXml.exists()) {
             String data = readStream(colorsXml);
+            data = data.replaceAll("(?s)<!--.+?-->", "");
 
             String regex = "<color\\s+name=\"(.+?)\">\\s*(\\S+)\\s*</color>";
             Pattern p = Pattern.compile(regex);
@@ -82,6 +89,13 @@ public class AndroidSelectorDialog extends DialogWrapper {
                 String name = m.group(1);
                 String color = m.group(2);
                 map.put(name, color);
+            }
+
+            if (map.isEmpty()) {
+                String title = "Error";
+                String msg = "Cannot find colors in colors.xml";
+                showMessageDialog(title, msg);
+                return false;
             }
 
             ArrayList<String[]> elements = new ArrayList<String[]>();
@@ -103,13 +117,13 @@ public class AndroidSelectorDialog extends DialogWrapper {
                 pressedCombo.addItem(element);
                 pressedV21Combo.addItem(element);
             }
-        } else {
-            String title = "Error";
-            String msg = String.format("Cannot find %s", colors);
-            Messages.showMessageDialog(
-                    project, msg, title, Messages.getErrorIcon());
-            throw new Exception();
+            return true;
         }
+
+        String title = "Error";
+        String msg = String.format("Cannot find %s", colors);
+        showMessageDialog(title, msg);
+        return false;
     }
 
     @Nullable
@@ -140,8 +154,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
         if (!valid(filename, color, pressed, pressedV21)) {
             String title = "Invalidation";
             String msg = "color, pressed, pressedV21 must start with `@color/`";
-            Messages.showMessageDialog(
-                    project, msg, title, Messages.getErrorIcon());
+            showMessageDialog(title, msg);
             return;
         }
 
@@ -149,8 +162,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
             String title = "Cannot create files";
             String msg = String.format(Locale.US,
                     "`%s` already exists", filename);
-            Messages.showMessageDialog(
-                    project, msg, title, Messages.getErrorIcon());
+            showMessageDialog(title, msg);
             return;
         }
 
@@ -304,5 +316,10 @@ public class AndroidSelectorDialog extends DialogWrapper {
 
         out.println(writer.getBuffer().toString());
         out.close();
+    }
+
+    private void showMessageDialog(String title, String message) {
+        Messages.showMessageDialog(
+                project, message, title, Messages.getErrorIcon());
     }
 }
