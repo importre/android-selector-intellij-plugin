@@ -6,6 +6,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
+import importre.intellij.android.selector.color.ColorItemRenderer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -18,22 +20,27 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AndroidSelectorDialog extends DialogWrapper {
+
     private final String drawableDir = "drawable";
     private final String drawableV21Dir = "drawable-v21";
+    private final String colors = "values/colors.xml";
     private final VirtualFile dir;
     private final Project project;
 
     private JPanel contentPane;
-    private JTextField colorText;
-    private JTextField colorPressed;
-    private JTextField colorPressedV21;
     private JTextField filenameText;
+    private JComboBox colorCombo;
+    private JComboBox pressedCombo;
+    private JComboBox pressedV21Combo;
 
     public AndroidSelectorDialog(@Nullable Project project, VirtualFile dir) {
         super(project);
@@ -42,8 +49,67 @@ public class AndroidSelectorDialog extends DialogWrapper {
         this.dir = dir;
         setTitle("Android Selector");
         setResizable(false);
-
+        try {
+            initColors(dir);
+        } catch (Exception ignored) {
+        }
         init();
+    }
+
+    @NotNull
+    private String readStream(VirtualFile file) throws Exception {
+        BufferedInputStream bis = new BufferedInputStream(file.getInputStream());
+        BufferedReader in = new BufferedReader(new InputStreamReader(bis));
+        StringBuilder buff = new StringBuilder();
+
+        String s;
+        while ((s = in.readLine()) != null) {
+            buff.append(s);
+        }
+        return buff.toString();
+    }
+
+    private void initColors(VirtualFile dir) throws Exception {
+        VirtualFile colorsXml = dir.findFileByRelativePath(colors);
+        if (colorsXml != null && colorsXml.exists()) {
+            String data = readStream(colorsXml);
+
+            String regex = "<color\\s+name=\"(.+?)\">\\s*(\\S+)\\s*</color>";
+            Pattern p = Pattern.compile(regex);
+            Matcher m = p.matcher(data);
+            HashMap<String, String> map = new LinkedHashMap<String, String>();
+            while (m.find()) {
+                String name = m.group(1);
+                String color = m.group(2);
+                map.put(name, color);
+            }
+
+            ArrayList<String[]> elements = new ArrayList<String[]>();
+            for (String name : map.keySet()) {
+                String color = map.get(name);
+                while (color.startsWith("@color/")) {
+                    color = color.replace("@color/", "");
+                    color = map.get(color);
+                }
+                elements.add(new String[]{color, name});
+            }
+
+            ColorItemRenderer renderer = new ColorItemRenderer();
+            colorCombo.setRenderer(renderer);
+            pressedCombo.setRenderer(renderer);
+            pressedV21Combo.setRenderer(renderer);
+            for (Object element : elements) {
+                colorCombo.addItem(element);
+                pressedCombo.addItem(element);
+                pressedV21Combo.addItem(element);
+            }
+        } else {
+            String title = "Error";
+            String msg = String.format("Cannot find %s", colors);
+            Messages.showMessageDialog(
+                    project, msg, title, Messages.getErrorIcon());
+            throw new Exception();
+        }
     }
 
     @Nullable
@@ -52,25 +118,39 @@ public class AndroidSelectorDialog extends DialogWrapper {
         return contentPane;
     }
 
+    private String getColorName(JComboBox combo) {
+        Object colorItem = combo.getSelectedItem();
+        try {
+            if (colorItem instanceof Object[]) {
+                return "@color/" + ((Object[]) (colorItem))[1];
+            }
+        } catch (Exception ignored) {
+        }
+        return "";
+    }
+
     @Override
     protected void doOKAction() {
         String f = filenameText.getText();
         final String filename = (f.endsWith(".xml") ? f : f + ".xml").trim();
-        final String color = colorText.getText().trim();
-        final String pressed = colorPressed.getText().trim();
-        final String pressedV21 = colorPressedV21.getText().trim();
+        final String color = getColorName(colorCombo);
+        final String pressed = getColorName(pressedCombo);
+        final String pressedV21 = getColorName(pressedV21Combo);
 
         if (!valid(filename, color, pressed, pressedV21)) {
             String title = "Invalidation";
-            String msg = "color, pressed, pressedV21 must start with `@color/` or `@drawable`";
-            Messages.showMessageDialog(project, msg, title, Messages.getErrorIcon());
+            String msg = "color, pressed, pressedV21 must start with `@color/`";
+            Messages.showMessageDialog(
+                    project, msg, title, Messages.getErrorIcon());
             return;
         }
 
         if (exists(filename)) {
             String title = "Cannot create files";
-            String msg = String.format(Locale.US, "`%s` already exists", filename);
-            Messages.showMessageDialog(project, msg, title, Messages.getErrorIcon());
+            String msg = String.format(Locale.US,
+                    "`%s` already exists", filename);
+            Messages.showMessageDialog(
+                    project, msg, title, Messages.getErrorIcon());
             return;
         }
 
@@ -93,7 +173,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
         if (filename.isEmpty() || ".xml".equals(filename))
             return false;
 
-        String regex = "^@(color|drawable)/.+";
+        String regex = "^@color/.+";
         return color.matches(regex) ||
                 pressed.matches(regex) ||
                 pressedV21.matches(regex);
