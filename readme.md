@@ -5,7 +5,7 @@
 
 
 ## Usage
-- Set your colors(`res/values/colors.xml`).
+- Set your colors(in `res/values/colors.xml`).
 ```xml
     <color name="colorPrimary">#519FE5</color>
     <color name="colorPrimaryDark">#388AC6</color>

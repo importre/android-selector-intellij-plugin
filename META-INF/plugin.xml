@@ -10,7 +10,11 @@
       <h1>Generate selectors for background drawable</h1>
       <br/>
 
-      Select `New -> AndroidSelector` with your `res` directory.
+      1. Set your colors(in `res/values/colors.xml`).
+      <br/>
+      2. Select `New -> AndroidSelector` with your `res` directory.
+      <br/>
+      3. Select filename, color, pressed and pressed-v21 respectively.
       <br/><br/>
 
       - ripple drawable is generated in drawable-v21 directory.<br/>
