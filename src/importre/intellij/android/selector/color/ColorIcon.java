@@ -14,7 +14,11 @@ public class ColorIcon implements Icon {
     private final String color;
 
     public ColorIcon(String color) {
-        this.color = color.startsWith("#") ? color.substring(1) : null;
+        if (color == null) {
+            this.color = null;
+        } else {
+            this.color = color.startsWith("#") ? color.substring(1) : null;
+        }
     }
 
     public int getIconHeight() {
