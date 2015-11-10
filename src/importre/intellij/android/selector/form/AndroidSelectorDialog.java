@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
@@ -20,19 +21,21 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.*;
 
 public class AndroidSelectorDialog extends DialogWrapper {
+
+    private static final String INDENT_SPACE = "{http://xml.apache.org/xslt}indent-amount";
 
     private static final String drawableDir = "drawable";
     private static final String drawableV21Dir = "drawable-v21";
     private static final String valuesColorsXml = "values/colors.xml";
+    private static final String localProps = "local.properties";
 
     private final VirtualFile dir;
     private final Project project;
@@ -59,54 +62,41 @@ public class AndroidSelectorDialog extends DialogWrapper {
             if (initColors(dir)) {
                 super.show();
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    @NotNull
-    private String readStream(VirtualFile file) throws Exception {
-        BufferedInputStream bis = new BufferedInputStream(file.getInputStream());
-        BufferedReader in = new BufferedReader(new InputStreamReader(bis));
-        StringBuilder buff = new StringBuilder();
-
-        String s;
-        while ((s = in.readLine()) != null) {
-            buff.append(s);
-        }
-        return buff.toString();
-    }
-
-    private boolean initColors(VirtualFile dir) throws Exception {
+    private boolean initColors(VirtualFile dir) {
         VirtualFile colorsXml = dir.findFileByRelativePath(valuesColorsXml);
         if (colorsXml != null && colorsXml.exists()) {
-            String data = readStream(colorsXml);
-            data = data.replaceAll("(?s)<!--.+?-->", "");
+            HashMap<String, String> cmap = parseXml(colorsXml);
+            HashMap<String, String> andCmap = readAndroidColor();
 
-            String regex = "<color\\s+name=\"(.+?)\">\\s*(\\S+)\\s*</color>";
-            Pattern p = Pattern.compile(regex);
-            Matcher m = p.matcher(data);
-            HashMap<String, String> map = new LinkedHashMap<String, String>();
-            while (m.find()) {
-                String name = m.group(1);
-                String color = m.group(2);
-                map.put(name, color);
-            }
-
-            if (map.isEmpty()) {
+            if (cmap.isEmpty()) {
                 String title = "Error";
                 String msg = "Cannot find colors in colors.xml";
                 showMessageDialog(title, msg);
                 return false;
             }
 
+            String regex = "^@(?:android:)?color/(.+$)";
             ArrayList<String[]> elements = new ArrayList<String[]>();
-            for (String name : map.keySet()) {
-                String color = map.get(name);
-                while (color.startsWith("@color/")) {
-                    color = color.replace("@color/", "");
-                    color = map.get(color);
+            for (String name : cmap.keySet()) {
+                String color = cmap.get(name);
+                while (color != null && color.matches(regex)) {
+                    if (color.startsWith("@color/")) {
+                        String key = color.replace("@color/", "");
+                        color = cmap.get(key);
+                    } else if (color.startsWith("@android:color/")) {
+                        String key = color.replace("@android:color/", "");
+                        color = andCmap.get(key);
+                    }
                 }
-                elements.add(new String[]{color, name});
+
+                if (color != null) {
+                    elements.add(new String[]{color, name});
+                }
             }
 
             ColorItemRenderer renderer = new ColorItemRenderer();
@@ -118,13 +108,92 @@ public class AndroidSelectorDialog extends DialogWrapper {
                 pressedCombo.addItem(element);
                 pressedV21Combo.addItem(element);
             }
-            return true;
+            return !elements.isEmpty();
         }
 
         String title = "Error";
         String msg = String.format("Cannot find %s", valuesColorsXml);
         showMessageDialog(title, msg);
         return false;
+    }
+
+    @NotNull
+    private HashMap<String, String> parseXml(VirtualFile colorsXml) {
+        HashMap<String, String> map = new LinkedHashMap<String, String>();
+        try {
+            NodeList colors = getColorNodes(colorsXml.getInputStream());
+            makeColorMap(colors, map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    private void makeColorMap(NodeList colors, HashMap<String, String> map) {
+        for (int i = 0; i < colors.getLength(); i++) {
+            Element node = (Element) colors.item(i);
+            String nodeName = node.getNodeName();
+            if ("color".equals(nodeName) || "item".equals(nodeName)) {
+                String name = node.getAttribute("name");
+                String color = node.getTextContent();
+                if (name != null && color != null && !map.containsKey(name)) {
+                    map.put(name, color);
+                }
+            }
+        }
+    }
+
+    private NodeList getColorNodes(InputStream stream) throws Exception {
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        String expression = "//item[@type=\"color\"]|//color";
+        XPathExpression compile = xPath.compile(expression);
+        DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = f.newDocumentBuilder();
+        Document doc = builder.parse(stream);
+        return (NodeList) compile.evaluate(doc, XPathConstants.NODESET);
+    }
+
+    @NotNull
+    private HashMap<String, String> readAndroidColor() {
+        HashMap<String, String> map = new HashMap<String, String>();
+        if (project == null) return map;
+        VirtualFile baseDir = project.getBaseDir();
+        VirtualFile prop = baseDir.findFileByRelativePath(localProps);
+        if (prop == null) return map;
+
+        Properties properties = new Properties();
+        try {
+            properties.load(prop.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String sdkDir = properties.getProperty("sdk.dir");
+        File file = new File(sdkDir + File.separator + "platforms");
+        ArrayList<String> platforms = new ArrayList<String>();
+        Collections.addAll(platforms, file.list());
+        Collections.reverse(platforms);
+        for (String platform : platforms) {
+            if (platform.matches("^android-\\d+$")) {
+                String path = "%s/platforms/%s/data/res/values";
+                path = String.format(path, sdkDir, platform);
+                File[] files = new File(path).listFiles();
+                if (files == null) continue;
+                for (File f : files) {
+                    if (f.getName().matches("colors.*\\.xml")) {
+                        try {
+                            FileInputStream stream = new FileInputStream(f);
+                            NodeList colors = getColorNodes(stream);
+                            makeColorMap(colors, map);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        return map;
     }
 
     @Nullable
@@ -139,7 +208,8 @@ public class AndroidSelectorDialog extends DialogWrapper {
             if (colorItem instanceof Object[]) {
                 return "@color/" + ((Object[]) (colorItem))[1];
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return "";
     }
@@ -174,7 +244,8 @@ public class AndroidSelectorDialog extends DialogWrapper {
                 try {
                     createDrawable(filename, color, pressed);
                     createDrawableV21(filename, color, pressedV21);
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -270,6 +341,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(INDENT_SPACE, "4");
         transformer.transform(new DOMSource(doc), new StreamResult(writer));
 
         out.println(writer.getBuffer().toString());
@@ -313,6 +385,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(INDENT_SPACE, "4");
         transformer.transform(new DOMSource(doc), new StreamResult(writer));
 
         out.println(writer.getBuffer().toString());
