@@ -4,6 +4,9 @@
 # android-selector-intellij-plugin ![icon](src/icons/icon@2x.png)
 :art: Generate selectors for background drawable.
 
+You can use `colorButtonNormal` simply,  
+but make easily touch feedback of normal `View`s as well as `Button`s with this plugin.
+
 
 ## Usage
 - Set your colors(in `res/values/colors.xml`).
