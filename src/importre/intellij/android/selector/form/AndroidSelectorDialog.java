@@ -36,6 +36,9 @@ public class AndroidSelectorDialog extends DialogWrapper {
     private static final String drawableV21Dir = "drawable-v21";
     private static final String valuesColorsXml = "values/colors.xml";
     private static final String localProps = "local.properties";
+    private static final String platformsRes = "%s/platforms/%s/data/res/values";
+    private static final String nsUri = "http://www.w3.org/2000/xmlns/";
+    private static final String androidUri = "http://schemas.android.com/apk/res/android";
 
     private final VirtualFile dir;
     private final Project project;
@@ -70,8 +73,8 @@ public class AndroidSelectorDialog extends DialogWrapper {
     private boolean initColors(VirtualFile dir) {
         VirtualFile colorsXml = dir.findFileByRelativePath(valuesColorsXml);
         if (colorsXml != null && colorsXml.exists()) {
-            HashMap<String, String> cmap = parseXml(colorsXml);
-            HashMap<String, String> andCmap = readAndroidColor();
+            HashMap<String, String> cmap = parseColorsXml(colorsXml);
+            HashMap<String, String> andCmap = parseAndroidColorsXml();
 
             if (cmap.isEmpty()) {
                 String title = "Error";
@@ -80,7 +83,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
                 return false;
             }
 
-            String regex = "^@(?:android:)?color/(.+$)";
+            String regex = "^@(android:)?color/(.+$)";
             ArrayList<String[]> elements = new ArrayList<String[]>();
             for (String name : cmap.keySet()) {
                 String color = cmap.get(name);
@@ -91,6 +94,8 @@ public class AndroidSelectorDialog extends DialogWrapper {
                     } else if (color.startsWith("@android:color/")) {
                         String key = color.replace("@android:color/", "");
                         color = andCmap.get(key);
+                    } else {
+                        // not reachable...
                     }
                 }
 
@@ -118,7 +123,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
     }
 
     @NotNull
-    private HashMap<String, String> parseXml(VirtualFile colorsXml) {
+    private HashMap<String, String> parseColorsXml(VirtualFile colorsXml) {
         HashMap<String, String> map = new LinkedHashMap<String, String>();
         try {
             NodeList colors = getColorNodes(colorsXml.getInputStream());
@@ -154,7 +159,7 @@ public class AndroidSelectorDialog extends DialogWrapper {
     }
 
     @NotNull
-    private HashMap<String, String> readAndroidColor() {
+    private HashMap<String, String> parseAndroidColorsXml() {
         HashMap<String, String> map = new HashMap<String, String>();
         if (project == null) return map;
         VirtualFile baseDir = project.getBaseDir();
@@ -170,27 +175,29 @@ public class AndroidSelectorDialog extends DialogWrapper {
 
         String sdkDir = properties.getProperty("sdk.dir");
         File file = new File(sdkDir + File.separator + "platforms");
+        if (!file.isDirectory()) return map;
+
         ArrayList<String> platforms = new ArrayList<String>();
         Collections.addAll(platforms, file.list());
         Collections.reverse(platforms);
-        for (String platform : platforms) {
-            if (platform.matches("^android-\\d+$")) {
-                String path = "%s/platforms/%s/data/res/values";
-                path = String.format(path, sdkDir, platform);
-                File[] files = new File(path).listFiles();
-                if (files == null) continue;
-                for (File f : files) {
-                    if (f.getName().matches("colors.*\\.xml")) {
-                        try {
-                            FileInputStream stream = new FileInputStream(f);
-                            NodeList colors = getColorNodes(stream);
-                            makeColorMap(colors, map);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+        for (int i = 0, size = platforms.size(); i < size; i++) {
+            String platform = platforms.get(i);
+            if (platform.matches("^android-\\d+$")) continue;
+            if (i > 3) break;
+
+            String path = String.format(platformsRes, sdkDir, platform);
+            File[] files = new File(path).listFiles();
+            if (files == null) continue;
+            for (File f : files) {
+                if (f.getName().matches("colors.*\\.xml")) {
+                    try {
+                        FileInputStream stream = new FileInputStream(f);
+                        NodeList colors = getColorNodes(stream);
+                        makeColorMap(colors, map);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
-                break;
             }
         }
         return map;
@@ -295,8 +302,6 @@ public class AndroidSelectorDialog extends DialogWrapper {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
 
-        String nsUri = "http://www.w3.org/2000/xmlns/";
-        String androidUri = "http://schemas.android.com/apk/res/android";
         Document doc = builder.newDocument();
         Element root = doc.createElement("selector");
         root.setAttributeNS(nsUri, "xmlns:android", androidUri);
@@ -365,8 +370,6 @@ public class AndroidSelectorDialog extends DialogWrapper {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
 
-        String nsUri = "http://www.w3.org/2000/xmlns/";
-        String androidUri = "http://schemas.android.com/apk/res/android";
         Document doc = builder.newDocument();
         Element root = doc.createElement("ripple");
         root.setAttributeNS(nsUri, "xmlns:android", androidUri);
