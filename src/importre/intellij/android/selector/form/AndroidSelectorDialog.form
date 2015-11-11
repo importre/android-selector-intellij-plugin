@@ -58,7 +58,7 @@
             </constraints>
             <properties>
               <text value="selectable_background"/>
-              <toolTipText value=""/>
+              <toolTipText value="filename of drawable xml"/>
             </properties>
           </component>
           <component id="6223d" class="javax.swing.JComboBox" binding="colorCombo">
