@@ -9,10 +9,14 @@
     <description><![CDATA[
       <h1>Generate selectors for background drawable</h1>
       <br/>
+      You can use `colorButtonNormal` simply,
+      <br/>
+      but make easily touch feedback of normal `View`s as well as `Button`s with this plugin.
+      <br/><br/>
 
       1. Set your colors(in `res/values/colors.xml`).
       <br/>
-      2. Select `New -> Android Selector(or Ctrl/Cmd + N)` on your `res` directory.  
+      2. Select `New -> Android Selector(or Ctrl/Cmd + N)` on your `res` directory.
       <br/>
       3. Select filename, color, pressed and pressed-v21 respectively.
       <br/><br/>
