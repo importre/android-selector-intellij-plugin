@@ -8,6 +8,14 @@ You can use `colorButtonNormal` simply,
 but make easily touch feedback of normal `View`s as well as `Button`s with this plugin.
 
 
+## Installation
+
+1. open Android Studio(or IntelliJ)
+2. Preferences :arrow_right: Plugins :arrow_right: Browse Repositories
+3. Search "Android Selector"
+4. Click "Install Plugin" button
+
+
 ## Usage
 - Set your colors(in `res/values/colors.xml`).
 ```xml
